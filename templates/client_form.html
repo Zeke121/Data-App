@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h3>{% if editing %}Edit Client{% else %}Create Client{% endif %}</h3>
+    </div>
+    <div class="card-body">
+        <ul class="nav nav-tabs" id="clientFormTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="general-tab" data-bs-toggle="tab" data-bs-target="#general" type="button" role="tab" aria-controls="general" aria-selected="true">General</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="linked-contacts-tab" data-bs-toggle="tab" data-bs-target="#linked-contacts" type="button" role="tab" aria-controls="linked-contacts" aria-selected="false">Linked Contacts</button>
+            </li>
+        </ul>
+        <div class="tab-content mt-3">
+            <!-- General Tab -->
+            <div class="tab-pane fade show active" id="general" role="tabpanel" aria-labelledby="general-tab">
+                <form id="clientForm" method="POST" action="{% if editing %}{{ url_for('edit_client', id=client.id) }}{% else %}{{ url_for('create_client') }}{% endif %}">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Client Name</label>
+                        <input type="text" class="form-control" id="name" name="name" value="{% if editing %}{{ client.name }}{% endif %}" placeholder="Enter client name" required>
+                    </div>
+                    {% if editing %}
+                    <div class="mb-3">
+                        <label for="code" class="form-label">Client Code</label>
+                        <input type="text" class="form-control" id="code" name="code" value="{{ client.code }}" readonly>
+                    </div>
+                    {% endif %}
+                    <button type="submit" class="btn btn-success">Submit</button>
+                </form>
+            </div>
+
+            <!-- Linked Contacts Tab -->
+            <div class="tab-pane fade" id="linked-contacts" role="tabpanel" aria-labelledby="linked-contacts-tab">
+                {% if editing %}
+                <form method="POST" action="{{ url_for('link_contact', client_id=client.id) }}">
+                    <div class="mb-3">
+                        <label for="contact" class="form-label">Add Contact</label>
+                        <select class="form-control" id="contact" name="contact_id">
+                            {% for contact in available_contacts %}
+                            <option value="{{ contact.id }}">{{ contact.name }} {{ contact.surname }} ({{ contact.email }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Link Contact</button>
+                </form>
+                <h4 class="mt-4">Linked Contacts</h4>
+                {% if client.contacts %}
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for link in client.contacts %}
+                        <tr>
+                            <td>{{ link.contact.name }} {{ link.contact.surname }}</td>
+                            <td>{{ link.contact.email }}</td>
+                            <td>
+                                <form method="POST" action="{{ url_for('unlink_contact', link_id=link.id) }}" style="display:inline;">
+                                    <button type="submit" class="btn btn-danger btn-sm">Unlink</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p>No linked contacts.</p>
+                {% endif %}
+                {% else %}
+                <p>Save the client first to link contacts.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

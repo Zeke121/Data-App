@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h3>{% if editing %}Edit Contact{% else %}Create Contact{% endif %}</h3>
+    </div>
+    <div class="card-body">
+        <ul class="nav nav-tabs" id="contactFormTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="general-tab" data-bs-toggle="tab" data-bs-target="#general" type="button" role="tab" aria-controls="general" aria-selected="true">General</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="linked-clients-tab" data-bs-toggle="tab" data-bs-target="#linked-clients" type="button" role="tab" aria-controls="linked-clients" aria-selected="false">Linked Clients</button>
+            </li>
+        </ul>
+        <div class="tab-content mt-3">
+            <!-- General Information Tab -->
+            <div class="tab-pane fade show active" id="general" role="tabpanel" aria-labelledby="general-tab">
+                <form id="contactForm" method="POST" action="{% if editing %}{{ url_for('edit_contact', id=contact.id) }}{% else %}{{ url_for('create_contact') }}{% endif %}">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">First Name</label>
+                        <input type="text" class="form-control" id="name" name="name" value="{% if editing %}{{ contact.name }}{% endif %}" placeholder="Enter first name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="surname" class="form-label">Surname</label>
+                        <input type="text" class="form-control" id="surname" name="surname" value="{% if editing %}{{ contact.surname }}{% endif %}" placeholder="Enter surname" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" value="{% if editing %}{{ contact.email }}{% endif %}" placeholder="Enter email address" required>
+                    </div>
+                    <button type="submit" class="btn btn-success">Submit</button>
+                </form>
+            </div>
+
+            <!-- Linked Clients Tab -->
+            <div class="tab-pane fade" id="linked-clients" role="tabpanel" aria-labelledby="linked-clients-tab">
+                {% if editing %}
+                <form method="POST" action="{{ url_for('link_client', contact_id=contact.id) }}">
+                    <div class="mb-3">
+                        <label for="client" class="form-label">Add Client</label>
+                        <select class="form-control" id="client" name="client_id">
+                            {% for client in available_clients %}
+                            <option value="{{ client.id }}">{{ client.name }} ({{ client.code }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Link Client</button>
+                </form>
+                <h4 class="mt-4">Linked Clients</h4>
+                {% if contact.clients %}
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Client Code</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for link in contact.clients %}
+                        <tr>
+                            <td>{{ link.client.name }}</td>
+                            <td>{{ link.client.code }}</td>
+                            <td>
+                                <form method="POST" action="{{ url_for('unlink_client', link_id=link.id) }}" style="display:inline;">
+                                    <button type="submit" class="btn btn-danger btn-sm">Unlink</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p>No linked clients.</p>
+                {% endif %}
+                {% else %}
+                <p>Save the contact first to link clients.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
